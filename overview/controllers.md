@@ -1,4 +1,4 @@
-# 컨트롤러
+# 컨트롤러
 
 컨트롤러는 들어오는 요청을 처리하고 클라이언트에 응답을 반환하는 역할을 합니다.
 
@@ -65,6 +65,8 @@ export class CatsController {
 >
 > 위의 요청: 요청 매개변수 예시에서와 같이 express 타입을 활용하려면 `@types/express` 패키지를 설치하세요.
 
-request 객체는 HTTP 요청을 나타내며 요청 쿼리 문자열, 매개변수, HTTP 헤더 및 본문에 대한 속성을 가지고 있습니다(자세한 내용은 **여기를** 참조하세요). 대부분의 경우 이러한 속성을 수동으로 가져올 필요는 없습니다. 대신 바로 사용할 수 있는 `@Body()` 또는 `@Query()`와 같은 전용 데코레이터를 사용할 수 있습니다. 아래는 제공되는 데코레이터를 사용할 수 있습니다.
+request 객체는 HTTP 요청을 나타내며 요청 쿼리 문자열, 매개변수, HTTP 헤더 및 본문에 대한 속성을 가지고 있습니다(자세한 내용은 **여기를** 참조하세요). 대부분의 경우 이러한 속성을 수동으로 가져올 필요는 없습니다. 대신 바로 사용할 수 있는 `@Body()` 또는 `@Query()`와 같은 전용 데코레이터를 사용할 수 있습니다. 아래는 제공되는 데코레이터를 사용할 수 있습니다.
 
 <table data-header-hidden><thead><tr><th width="264"></th><th></th></tr></thead><tbody><tr><td><code>@Request(), @Req()</code></td><td><code>req</code></td></tr><tr><td><code>@Response(), @Res()</code>*</td><td><code>res</code></td></tr><tr><td><code>@Next()</code></td><td><code>next</code></td></tr><tr><td><code>@Session()</code></td><td><code>req.session</code></td></tr><tr><td><code>@Param(key?: string)</code></td><td><code>req.params</code> / <code>req.params[key]</code></td></tr><tr><td><code>@Body(key?: string)</code></td><td><code>req.body</code> / <code>req.body[key]</code></td></tr><tr><td><code>@Query(key?: string)</code></td><td><code>req.query</code> / <code>req.query[key]</code></td></tr><tr><td><code>@Headers(name?: string)</code></td><td><code>req.headers</code> / <code>req.headers[name]</code></td></tr><tr><td><code>@Ip()</code></td><td><code>req.ip</code></td></tr><tr><td><code>@HostParam()</code></td><td><code>req.hosts</code></td></tr></tbody></table>
+
+\*기본 HTTP 플랫폼(예: Express 및 Fastify)에서의 타이핑과의 호환성을 위해 Nest는 `@Res()` 및 `@Response()` 데코레이터를 제공합니다. `Res()`는 `@Response()`의 별칭일 뿐입니다. 둘 다 기본 네이티브 플랫폼 응답 객체 인터페이스를 직접 노출합니다. 이 두 데코레이터를 사용할 때는 기본 라이브러리의 타이핑(예: `@types/express`)도 import해야 타입의 장점을 최대한 활용할 수 있습니다. 메서드 핸들러에 `@Res()` 또는 `@Response()`를 삽입하면 해당 핸들러에 대해 Nest를 **라이브러리 전용 모드**로 전환하고 응답을 관리할 책임이 있다는 점에 유의하세요. 이 경우 응답 객체(예: `res.json(...)` 또는 `res.send(...)`)를 호출하여 어떤 종류의 응답을 발행해야 하며, 그렇지 않으면 HTTP 서버가 중단됩니다.
