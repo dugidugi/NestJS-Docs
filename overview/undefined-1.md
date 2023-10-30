@@ -1,0 +1,259 @@
+# 모듈
+
+모듈은 `@Module()` 데코레이터로 주석이 달린 클래스입니다. `@Module()` 데코레이터는 **Nest**가 애플리케이션 구조를 구성하는 데 사용하는 메타데이터를 제공합니다.
+
+<figure><img src="../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+
+각 애플리케이션에는 하나 이상의 모듈, 루트 모듈이 있습니다. 루트 모듈은 Nest가 **애플리케이션 그래프**를 만드는 시작점입니다. 애플리케이션 그래프는 Nest가 모듈-프로바이더 관계, 의존성을 관리하는데 사용하는 내부 데이터 구조입니다. 아주 작은 애플리케이션에는 이론적으로 루트 모듈만 있을 수 있지만, 일반적으로 그렇지는 않습니다. 모듈은 컴포넌트를 효과적으로 정리하는 방법이므로 강력히 권장합니다. 따라서 대부분의 애플리케이션의 아키텍처는 여러 개의 모듈을 사용하며, 각 모듈은 밀접하게 관련된 기능 집합을 캡슐화합니다.
+
+`@Module()` 데코레이터는 모듈을 정의하는 단일 객체를 받습니다.
+
+Nest인젝터에 의해 인스턴스화되고, 이 모듈 전체에서 공유될 수 있는 프로바이더들
+
+인스턴스화해야 하는 이 모듈에 정의된 컨트롤러들
+
+이 모듈에 필요한 프로바이더를 제공하는 임포트된 모듈들
+
+이 모듈에서 만들어진 프로바이더 중 다른 모듈에서 사용하는 하는 프로바이더. 프로바이더 자체 또는 프로바이더 토큰으로. (`provide` 값)
+
+
+
+| `providers`   | the providers that will be instantiated by the Nest injector and that may be shared at least across this module                                                                                          |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `controllers` | the set of controllers defined in this module which have to be instantiated                                                                                                                              |
+| `imports`     | the list of imported modules that export the providers which are required in this module                                                                                                                 |
+| `exports`     | the subset of `providers` that are provided by this module and should be available in other modules which import this module. You can use either the provider itself or just its token (`provide` value) |
+
+
+
+모듈은 기본적으로 프로바이더를 캡슐화합니다. 즉, 현재 모듈에 직접 포함되지 않은 프로바이더는 주입할 수 없습니다. 또한 임포트한 모듈에서 export한 프로바이더도 주입할 수 없습니다. 따라서 모듈에서 내보낸 프로바이더를 모듈의 공용 인터페이스 또는 API로 간주할 수 있습니다.(뭐라그러는거지)
+
+
+
+### 피쳐 모듈
+
+`CatsController`와 `CatsService`는 동일한 애플리케이션 도메인에 속합니다. 서로 밀접하게 연관되어 있으므로 피쳐 모듈로 이동하는 것이 좋습니다. 피쳐 모듈은 특정 기능과 관련된 코드를 간단히 정리하여 코드를 체계적으로 유지하고 명확한 경계를 설정합니다. 이는 특히 애플리케이션 및/또는 팀의 규모가 커짐에 따라 복잡성을 관리하고 SOLID 원칙에 따라 개발하는 데 도움이 됩니다.
+
+예시로 `CatsModule`을 만들어 보겠습니다.
+
+{% code title="cats/cats.module.ts" %}
+```typescript
+import { Module } from '@nestjs/common';
+import { CatsController } from './cats.controller';
+import { CatsService } from './cats.service';
+
+@Module({
+  controllers: [CatsController],
+  providers: [CatsService],
+})
+export class CatsModule {}
+```
+{% endcode %}
+
+> **힌트**
+>
+> CLI를 사용하여 모듈을 만들려면 `$ nest g module cats` 명령을 실행하세요.
+
+위에서 `cats.module.ts` 파일에 `CatsModule`을 정의하고 이 모듈과 관련된 모든 것을 `cats` 디렉토리로 옮겼습니다. 마지막으로 해야 할 일은 이 모듈을 루트 모듈(`app.module.ts` 파일에 정의된 `AppModule`)로 임포트하는 것입니다.
+
+{% code title="app.module.ts" %}
+```typescript
+import { Module } from '@nestjs/common';
+import { CatsModule } from './cats/cats.module';
+
+@Module({
+  imports: [CatsModule],
+})
+export class AppModule {}
+```
+{% endcode %}
+
+이제 디렉토리 구조는 다음과 같습니다.
+
+<pre><code><strong>src
+</strong>├──cats
+│  ├─┬ dto
+│  │ └── create-cat.dto.ts
+│  ├─┬ interfaces
+│  │ └── cat.interface.ts
+│  ├── cats.controller.ts
+│  ├── cats.module.ts
+│  └── cats.service.ts
+├──app.module.ts
+└──main.ts
+</code></pre>
+
+
+
+### 공유 모듈
+
+Nest에서 모듈은 기본적으로 싱글톤이므로 여러 모듈 간에 모든 프로바이더의 동일한 인스턴스를 손쉽게 공유할 수 있습니다.
+
+<figure><img src="../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
+
+모든 모듈은 자동적으로 공유 모듈입니다. 일단 생성되면 모든 모듈에서 재사용할 수 있습니다. 다른 여러 모듈에서 `CatsService` 인스턴스를 공유하고자 한다고 가정해 보겠습니다. 이를 위해서는 먼저 아래처럼 모듈의 `exports` 배열에 `CatsService` 프로바이더를 추가하여 익스포트해야 합니다.
+
+{% code title="cats.module.ts" %}
+```typescript
+import { Module } from '@nestjs/common';
+import { CatsController } from './cats.controller';
+import { CatsService } from './cats.service';
+
+@Module({
+  controllers: [CatsController],
+  providers: [CatsService],
+  exports: [CatsService]
+})
+export class CatsModule {}
+```
+{% endcode %}
+
+이제 `CatsModule`을 임포트하는 모든 모듈은 `CatsService`에 액세스할 수 있으며 `CatsModule` 임포트하는 다른 모든 모듈과 동일한 인스턴스를 공유하게 됩니다.
+
+
+
+### 모듈 **re-exporting**
+
+위에서 보았듯이 모듈은 내부의 프로바이더를 익스포트할 수 있습니다. 또한 가져온 모듈을 다시 내보낼 수도 있습니다. 아래 예시에서는 `CommonModule`을 `CoreModule`에서 가져오고 내보내어 이 모듈을 가져오는 다른 모듈에서 사용할 수 있도록 합니다.
+
+```typescript
+@Module({
+  imports: [CommonModule],
+  exports: [CommonModule],
+})
+export class CoreModule {}
+```
+
+
+
+### 의존성 주입
+
+모듈 클래스는 프로바이더를 주입할 수도 있습니다(예: 설정을 위한 주입)
+
+{% code title="cats.module.ts" %}
+```typescript
+import { Module } from '@nestjs/common';
+import { CatsController } from './cats.controller';
+import { CatsService } from './cats.service';
+
+@Module({
+  controllers: [CatsController],
+  providers: [CatsService],
+})
+export class CatsModule {
+  constructor(private catsService: CatsService) {}
+}
+```
+{% endcode %}
+
+그러나 모듈 클래스 자체는 순환 의존성으로 인해 프로바이더로 주입할 수 없습니다.
+
+
+
+### 글로벌 모듈
+
+모든 곳에서 동일한 모듈들을 임포트해야 한다면 귀찮을 수 있습니다. Nest와 달리 **Angular** `provider`는 글로벌 scope에 등록됩니다. 한번 정의하면 어디서나 사용할 수 있습니다. 그러나 Nest는 모듈 scope에서 프로바이더를 캡슐화합니다. 캡슐화된 모듈을 먼저 임포트하지 않으면 다른 곳에서 모듈의 프로바이더를 사용할 수 없습니다.
+
+헬퍼, 데이터베이스 연결 등 모든 곳에서 즉시 사용할 수 있어야 하는 프로바이더를 만들려는 경우 `@Global()` 데코레이터를 사용하여 모듈을 전역으로 만드세요.
+
+```typescript
+import { Module, Global } from '@nestjs/common';
+import { CatsController } from './cats.controller';
+import { CatsService } from './cats.service';
+
+@Global()
+@Module({
+  controllers: [CatsController],
+  providers: [CatsService],
+  exports: [CatsService],
+})
+export class CatsModule {}
+```
+
+`@Global()` 데코레이터는 모듈을 전역 모듈로 만듭니다. 전역 모듈은 일반적으로 루트 모듈이나 코어 모듈에 의해 한 번만 등록되어야 합니다. 위의 예시에서 `CatsService` 프로바이더는 어디서든 사용할 수 있으며, 이 서비스를 사용하려는 모듈은 imports 배열에서 `CatsModule`을 임포트할 필요가 없습니다.
+
+> 힌트
+>
+> 모든 것을 글로벌하게 만드는 것은 좋은 디자인 결정이 아닙니다. 필요한 상용구의 양을 줄이기 위해 전역 모듈을 사용할 수 있습니다. `imports` 배열은 일반적으로 컨수머가 모듈의 API를 사용할 수 있도록 하는 데 선호되는 방법입니다.
+
+###
+
+### 다이나믹 모듈
+
+Nest 모듈 시스템에는 다이나믹 모듈이라는 강력한 기능이 포함되어 있습니다. 이 기능을 사용하면 프로바이더를 동적으로 등록하고 구성할 수 있는 사용자 지정 가능한 모듈을 쉽게 만들 수 있습니다. 여기서는 동적 모듈에 대해 광범위하게 다룹니다. 이 장에서는 모듈에 대한 소개를 완료하기 위해 간략한 개요를 제공하겠습니다.
+
+다음은 데이터베이스 모듈에 대한 동적 모듈 정의의 예입니다
+
+```typescript
+import { Module, DynamicModule } from '@nestjs/common';
+import { createDatabaseProviders } from './database.providers';
+import { Connection } from './connection.provider';
+
+@Module({
+  providers: [Connection],
+})
+export class DatabaseModule {
+  static forRoot(entities = [], options?): DynamicModule {
+    const providers = createDatabaseProviders(options, entities);
+    return {
+      module: DatabaseModule,
+      providers: providers,
+      exports: providers,
+    };
+  }
+}
+```
+
+> 힌트
+>
+> `forRoot()` 메서드는 동적 모듈을 동기식 또는 비동기식(즉, 프로미스를 통해)으로 반환할 수 있습니다.
+
+이 모듈은 기본적으로 연결 공급자를 정의하지만(`@Module()` 데코레이터 메타데이터에 있음), 추가로 forRoot() 메서드에 전달된 엔티티 및 옵션 객체에 따라 리포지토리와 같은 공급자 컬렉션을 노출합니다. 동적 모듈이 반환하는 프로퍼티는 @Module() 데코레이터에 정의된 기본 모듈 메타데이터를 재정의하지 않고 확장한다는 점에 유의하세요. 이것이 정적으로 선언된 연결 공급자와 동적으로 생성된 리포지토리 공급자가 모듈에서 내보내는 방식입니다.
+
+전역 범위에서 동적 모듈을 등록하려면 전역 속성을 true로 설정하세요.
+
+```typescript
+{
+  global: true,
+  module: DatabaseModule,
+  providers: providers,
+  exports: providers,
+}
+```
+
+> 주의
+>
+> 위에서 언급했듯이 모든 것을 글로벌로 만드는 것은 좋은 디자인 결정이 아닙니다.
+
+데이터베이스 모듈은 다음과 같은 방법으로 가져오고 구성할 수 있습니다:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { DatabaseModule } from './database/database.module';
+import { User } from './users/entities/user.entity';
+
+@Module({
+  imports: [DatabaseModule.forRoot([User])],
+})
+export class AppModule {}
+```
+
+동적 모듈을 차례로 다시 내보내려면 내보내기 배열에서 forRoot() 메서드 호출을 생략할 수 있습니다:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { DatabaseModule } from './database/database.module';
+import { User } from './users/entities/user.entity';
+
+@Module({
+  imports: [DatabaseModule.forRoot([User])],
+  exports: [DatabaseModule],
+})
+export class AppModule {}
+```
+
+동적 모듈 챕터에서 이 주제를 자세히 다루며 작업 예제가 포함되어 있습니다.
+
+> **힌트**
+>
+> 이 장에서는 구성 가능한 모듈 빌더를 사용하여 고도로 사용자 정의 가능한 동적 모듈을 빌드하는 방법을 알아보세요.
