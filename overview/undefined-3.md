@@ -1,10 +1,10 @@
 # 예외 필터
 
-Nest에는 애플리케이션 전체에서 처리되지 않은 모든 예외를 처리하는 **예외 계층(exceptions layer)**이 내장되어 있습니다. 예외가 애플리케이션 코드에서 처리되지 않으면 이 계층에서 예외를 포착하여 적절한 사용자 친화적인 응답을 자동으로 전송합니다.
+Nest에는 예외를 처리하는 **예외 계층(exceptions layer)**이 내장되어 있습니다. 예외가 작성한 코드에서 처리되지 않으면 이 계층에서 자동으로 예외를 포착하여 적절한 사용자 친화적인 response를 전송합니다.
 
 <figure><img src="../.gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
 
-기본적으로 이 작업은 내장된 전역 예외 필터에 의해 수행되며, 이 필터는 `HttpException` 유형(및 그 하위 클래스)의 예외를 처리합니다. 예외가 인식되지 않는 경우(`HttpException`도 아니고 `HttpException`을 상속하는 클래스도 아닌 경우) 기본 제공 예외 필터는 다음과 같은 기본 JSON 응답을 생성합니다:
+기본적으로 이 작업은 내장된 **전역 예외 필터**에 의해 수행되며, 이 필터는 `HttpException`유형(및 그 하위 클래스)의 예외를 처리합니다. 예외가 **인식되지 않는 경우**(`HttpException`도 아니고 `HttpException`을 상속하는 클래스도 아닌 경우) 기본 제공 예외 필터는 다음과 같은 기본 JSON 응답을 생성합니다:
 
 ```json
 {
@@ -15,15 +15,15 @@ Nest에는 애플리케이션 전체에서 처리되지 않은 모든 예외를 
 
 > **힌트**
 >
-> 전역 예외 필터는 부분적으로 `http-errors` 라이브러리를 지원합니다. `statusCode` 및 `message` 프로퍼티를 포함했다면 예외가 적절하게 구성되어 응답으로 전송됩니다. (기본 `InternalServerErrorException` 대신에).
+> 전역 예외 필터는 부분적으로 `http-errors` 라이브러리를 지원합니다. `statusCode` 및 `message` 프로퍼티를 포함했다면 예외가 적절하게 구성되어 응답으로 전송됩니다. (디폴트인 `InternalServerErrorException` 대신).
 
 
 
 ### 표준 예외 던지기
 
-Nest는 `@nestjs/common` 패키지를 활용하여 빌트인 `HttpException` 클래스를 제공합니다. 일반적인 HTTP REST/GraphQL API 기반 애플리케이션의 경우, 특정 오류 조건이 발생하면 표준 HTTP 응답 객체를 전송하는 것이 가장 좋습니다.
+Nest는 `@nestjs/common` 패키지를 활용하여 빌트인 `HttpException` 클래스를 제공합니다. 일반적인 HTTP REST / GraphQL API 기반 애플리케이션의 경우, 특정 오류 조건이 발생하면 표준 HTTP 응답 객체를 전송하는 것이 가장 좋습니다.
 
-예를 들어, `CatsController`에는 `findAll()` 메서드(`GET` 라우트 핸들러)가 있습니다. 이 라우트 핸들러가 어떤 이유로 예외를 던진다고 가정해 봅시다. 이를 보여주기 위해 다음과 같이 하드코딩 해보겠습니다:
+예를 들어, `CatsController`에는 `findAll()`메서드(`GET` 라우트 핸들러)가 있습니다. 이 라우트 핸들러가 어떤 이유로 예외를 던진다고 가정해 봅시다. 이를 보여주기 위해 다음과 같이 하드코딩 해보겠습니다:
 
 {% code title="cats.controller.ts" %}
 ```typescript
@@ -36,7 +36,7 @@ async findAll() {
 
 > **힌트**
 >
-> 여기서는 `HttpStatus`를 사용했습니다. 이것은 `@nestjs/common` 패키지에서 가져온 헬퍼 enum입니다.
+> 여기서는 `HttpStatus`를 사용했습니다.`HttpStatus`는 `@nestjs/common` 패키지의 헬퍼 enum입니다.
 
 사용자가 이 엔드포인트에 요청하면, 응답은 다음과 같습니다.
 
@@ -50,7 +50,7 @@ async findAll() {
 `HttpException` 생성자는 응답을 결정하는 두 개의 필수 인수를 받습니다:
 
 * `reponse` 인수는 JSON response body를 정의합니다. 아래 설명된 대로 `string` 또는 `object`일 수 있습니다.&#x20;
-* `status` 인수는 [HTTP 상태 코드](https://developer.mozilla.org/ko/docs/Web/HTTP/Status)를 정의합니다.&#x20;
+* `status` 인수는 [**HTTP 상태 코드**](https://developer.mozilla.org/ko/docs/Web/HTTP/Status)를 정의합니다.&#x20;
 
 기본적으로 JSON response body에는 두 가지 속성이 포함됩니다:
 
@@ -65,9 +65,9 @@ JSON response body의 message 부분만 바꾸려면 `response` 인수에 문자
 
 두 번째 생성자 인자인 `status`는 유효한 HTTP 상태 코드여야 합니다. 가장 좋은 방법은 `@nestjs/common`에서 가져온 `HttpStatus` enum을 사용하는 것입니다.
 
-(선택 사항)오류 원인을 제공하는 데 사용할 수 있는 세 번째 생성자 인자인 `options`가 있습니다. 이 `cause` 객체는 응답 객체로 직렬화되지는 않지만 로깅 목적으로 유용할 수 있으며, `HttpException`을 발생시킨 내부 오류에 대한 중요한 정보를 제공합니다.
+(선택 사항)세 번째 생성자 인자인 `options`가 있으며, 오류 원인을 제공하는 데 사용할 수 있습니다. `cause` 객체는 응답 객체로 직렬화되지는 않지만 로깅 목적으로 유용할 수 있으며, `HttpException`을 발생시킨 내부 오류에 대한 중요한 정보를 제공합니다.
 
-다음은 전체 응답 본문을 재정의하고 오류 원인을 제공하는 예제입니다:
+다음은 전체 응답 본문을 재정의하고 오류 원인을 제공하는 예제입니다.
 
 {% code title="cats.controller.ts" %}
 ```typescript
@@ -100,7 +100,7 @@ async findAll() {
 
 ### 사용자 정의 예외
 
-대부분의 경우 사용자 정의 예외를 작성할 필요가 없으며, 다음 섹션에 설명된 대로 기본 제공 Nest HTTP 예외를 사용할 수 있습니다. 사용자 정의 예외를 작성해야 하는 경우, 사용자 정의 예외가 기본 `HttpException` 클래스를 상속하는 자체 **예외 계층**을 만드는 것이 좋습니다. 이 접근 방식을 사용하면 Nest가 예외를 인식하고 오류 응답을 자동으로 처리합니다. 이러한 사용자 정의 예외를 구현해 보겠습니다:
+대부분의 경우 **사용자 정의 예외**를 작성할 필요가 없으며, 다음 섹션에 설명된 대로 기본 제공 Nest HTTP 예외를 사용할 수 있습니다. 사용자 정의 예외를 작성해야 하는 경우, 사용자 정의 예외가 기본 `HttpException` 클래스를 상속하는 자체 예외 계층을 만드는 것이 좋습니다. 이 접근 방식을 사용하면 Nest가 예외를 인식하고 오류 응답을 자동으로 처리합니다. 이러한 사용자 정의 예외를 구현해 보겠습니다:
 
 {% code title="forbidden.exception.ts" %}
 ```typescript
@@ -125,7 +125,7 @@ async findAll() {
 
 ### 기본 제공 HTTP 예외&#x20;
 
-Nest는 기본 `HttpException`을 상속하는 표준 예외 목록을 제공합니다. 이러한 예외는 `@nestjs/common` 패키지에서 제공되며, 가장 일반적인 HTTP 예외 중 다수를 나타냅니다:
+Nest는 기본 `HttpException`을 상속하는 표준 예외 목록을 제공합니다. 이러한 예외는 `@nestjs/common` 패키지에서 제공되며, 가장 일반적인 HTTP 예외 중 다수가 포함되어 있습니다.
 
 * `BadRequestException`
 * `UnauthorizedException`
@@ -148,7 +148,7 @@ Nest는 기본 `HttpException`을 상속하는 표준 예외 목록을 제공합
 * `GatewayTimeoutException`
 * `PreconditionFailedException`
 
-모든 기본 제공 예외는 `options` 매개 변수를 사용하여 오류 `cause`과 오류 설명을 모두 제공할 수도 있습니다:
+모든 기본 제공 예외는 `options` 매개 변수를 사용하여 오류 `cause`과 오류 `description`을 모두 제공할 수도 있습니다.
 
 ```typescript
 throw new BadRequestException('Something bad happened', { cause: new Error(), description: 'Some error description' })
@@ -168,9 +168,9 @@ throw new BadRequestException('Something bad happened', { cause: new Error(), de
 
 ### 예외 필터
 
-기본 예외 필터가 많은 경우를 자동으로 처리할 수 있지만 예외 계층을 **완전히 제어**하고 싶을 수도 있습니다. 예를 들어 로깅을 추가하거나 동적 요인에 따라 다른 JSON 스키마를 사용하고 싶을 수 있습니다. 예외 필터는 바로 이러한 목적을 위해 설계되었습니다. 예외 필터를 사용하면 정확한 제어 흐름과 클라이언트에 다시 전송되는 응답의 내용을 제어할 수 있습니다.
+기본 예외 필터가 많은 상황을 자동으로 처리할 수 있지만 예외 계층을 **완전히 제어**하고 싶을 수도 있습니다. 예를 들어 로깅을 추가하거나 동적 요인에 따라 다른 JSON 스키마를 사용하고 싶을 수 있습니다. **예외 필터**는 바로 이러한 목적을 위해 설계되었습니다. 예외 필터를 사용하면 정확한 제어 흐름과 클라이언트에 다시 전송되는 응답의 내용을 제어할 수 있습니다.
 
-`HttpException` 클래스의 인스턴스인 예외를 포착하고 이에 대한 사용자 정의 응답 로직을 구현하는 예외 필터를 만들어 보겠습니다. 이를 위해서는 플랫폼의 기본 `Request` 및 `Response` 객체에 액세스해야 합니다. `Request` 객체에 액세스하여 원본 `url`을 가져와 로깅 정보에 포함할 수 있습니다. `Response` 객체를 활용하여 `response.json()` 메서드로 응답을 직접 제어할 것입니다.
+`HttpException` 클래스의 인스턴스인 예외를 캐치하고 이에 대한 사용자 정의 응답 로직을 구현하는 예외 필터를 만들어 보겠습니다. 이를 위해서는 플랫폼의 기본 `Request` 및 `Response` 객체에 액세스해야 합니다. `Request` 객체에 액세스하여 원본 `url`을 가져와 로깅 정보에 포함할 수 있습니다. `Response` 객체를 활용하여 `response.json()` 메서드로 응답을 직접 제어할 것입니다.
 
 {% code title="http-exception.filter.ts" %}
 ```typescript
@@ -199,7 +199,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
 > **힌트**
 >
-> 모든 예외 필터는 제네릭 `ExceptionFilter<T>` 인터페이스를 implement해야 합니다. 이를 위해서는 `catch(exception: T, host: ArgumentsHost)` 메서드에 지정된 시그니처를 제공해야 합니다. `T`는 예외의 유형을 나타냅니다.
+> 모든 예외 필터는 제네릭 `ExceptionFilter<T>` 인터페이스를 implement해야 합니다. 이를 위해서는 `catch(exception: T, host: ArgumentsHost)`메서드에 지정된 시그니처를 제공해야 합니다. `T`는 예외의 유형을 나타냅니다.
 
 > **주의**&#x20;
 >
@@ -209,11 +209,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
 
 
-**Arguments host**
+### **Arguments host**
 
 `catch()` 메서드의 매개변수를 살펴봅시다. `exception` 매개변수는 현재 처리 중인 예외 객체입니다. `host` 매개변수는 `ArgumentsHost` 객체입니다. `ArgumentsHost`는 **실행 컨텍스트 챕터**\*에서 자세히 살펴볼 강력한 유틸리티 객체입니다. 이 코드 샘플에서는 이 객체를 사용하여 원래 요청 처리기(예외가 발생한 컨트롤러에서)로 전달되는 `Request` 및 `Response` 객체에 대한 참조를 얻습니다. 이 코드 샘플에서는 `ArgumentsHost`의 몇 가지 헬퍼 메서드를 사용하여 원하는 `Request` 및 `Response` 객체를 가져왔습니다. `ArgumentsHost`에 대해서는 이곳에서 자세히 알아보세요.
 
-\*이렇게 추상화 수준을 높은 이유는 `ArgumentsHost`가 모든 컨텍스트(예: 지금 작업 중인 HTTP 서버 컨텍스트뿐만 아니라 마이크로서비스와 웹소켓 등)에서 작동하기 때문입니다. 실행 컨텍스트 챕터에서는 `ArgumentsHost`와 헬퍼 함수를 이용해 모든 실행 컨텍스트에 적합한 기본 인자에 접근하는 방법을 살펴볼 것입니다. 이를 통해 모든 컨텍스트에서 작동하는 일반 예외 필터를 작성할 수 있습니다.
+\*이렇게 추상화 수준이 높은 이유는 `ArgumentsHost`가 모든 컨텍스트(예: 지금 작업 중인 HTTP 서버 컨텍스트뿐만 아니라 마이크로서비스와 웹소켓 등)에서 작동하기 때문입니다. 실행 컨텍스트 챕터에서는 `ArgumentsHost`와 헬퍼 함수를 이용해 모든 실행 컨텍스트에 적합한 기본 인자에 접근하는 방법을 살펴볼 것입니다. 이를 통해 모든 컨텍스트에서 작동하는 일반 예외 필터를 작성할 수 있습니다.
 
 
 
@@ -233,7 +233,7 @@ async create(@Body() createCatDto: CreateCatDto) {
 
 > 힌트
 >
-> `UseFilters()` 데코레이터는 `@nestjs/common` 패키지에서 가져옵니다.
+> `UseFilters()` 데코레이터는 `@nestjs/common` 패키지에서 임포트합니다.
 
 여기서는 `@UseFilters()` 데코레이터를 사용했습니다. `@Catch()` 데코레이터와 마찬가지로 단일 필터 인스턴스 또는 쉼표로 구분된 필터 인스턴스 목록을 받을 수 있습니다. 여기서는 `HttpExceptionFilter` 인스턴스를 생성했습니다. 또는 인스턴스 대신 클래스를 전달하여 인스턴스화에 대한 책임을 프레임워크에 맡기고 **의존성 주입**을 활성화할 수 있습니다.
 
@@ -349,13 +349,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
 ```
 
 > **주의**\
-> 모든 것을 캐치하는 예외 필터와 특정 유형에 바인딩된 필터를 결합하는 경우, 특정 필터가 바인딩된 유형을 올바르게 처리할 수 있도록 '무엇이든 캐치하는 필터'를 먼저 선언해야 합니다.
+> 모든 것을 캐치하는 예외 필터와 특정 유형에 바인딩된 필터를 결합하는 경우, 특정 필터가 바인딩된 유형을 올바르게 처리할 수 있도록 '모든 것을 캐치하는 필터'를 먼저 선언해야 합니다.
 
 
 
 ### 상속
 
-일반적으로 애플리케이션 요구 사항을 충족하기 위해 완전히 사용자 정의된 예외 필터를 만듭니다. 그러나 기본 제공되는 기본 전역 예외 필터를 간단히 확장하고 특정 요인에 따라 동작을 재정의하려는 사용 사례가 있을 수 있습니다.
+일반적으로 애플리케이션 요구 사항을 충족하기 위해 사용자 정의 예외 필터를 만듭니다. 그러나 기본으로 제공되는 디폴트 전역 예외 필터를 간단히 확장하고 특정 요인에 따라 동작을 재정의하려는 사용 사례가 있을 수 있습니다.
 
 예외 처리를 기본 필터에 위임하려면 `BaseExceptionFilter`를 확장하고 상속된 `catch()` 메서드를 호출해야 합니다.
 
@@ -376,11 +376,11 @@ export class AllExceptionsFilter extends BaseExceptionFilter {
 > **주의**\
 > `BaseExceptionFilter`를 extend하는 메서드 범위 및 컨트롤러 범위의 필터는 `new`로 인스턴스화해서는 안 됩니다. 대신 프레임워크가 자동으로 인스턴스화하도록 하세요.&#x20;
 
-위의 구현은 접근 방식을 보여주는 셸일 뿐입니다. 확장 예외 필터의 구현에는 맞춤형 비즈니스 로직(예: 다양한 조건 처리)이 포함될 수 있습니다.
+위의 구현은 접근 방식을 보여줄 뿐입니다. extend된 예외 필터의 구현에는 맞춤형 비즈니스 로직(예: 다양한 조건 처리)이 포함될 수 있습니다.
 
 전역 필터는 기본 필터를 extend할 수 있습니다. 이 작업은 두 가지 방법 중 하나로 수행할 수 있습니다.
 
-첫 번째 방법은 사용자 정의 전역 필터를 인스턴스화할 때 `HttpAdapter` 참조를 삽입하는 것입니다:
+첫 번째 방법은 사용자 정의 전역 필터를 인스턴스화할 때 `HttpAdapter` 참조를 주입하는 것입니다:
 
 ```typescript
 async function bootstrap() {
@@ -395,6 +395,3 @@ bootstrap();
 ```
 
 두 번째 방법은 [**여기에**](undefined-3.md#undefined-3) 표시된 것처럼 `APP_FILTER` 토큰을 사용하는 것입니다.
-
-
-
