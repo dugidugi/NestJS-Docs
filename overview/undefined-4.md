@@ -1,5 +1,7 @@
 # 파이프
 
+\*validator는 번역하자면 유효성 검사(기)로 할 수 있으나, 실제 많이 쓰이는 용어이니 그대로 validator라고 남겨둡니다.
+
 파이프는 `PipeTransform` 인터페이스를 사용하는 `@Injectable()` 데코레이터가 달린 클래스입니다.
 
 <figure><img src="../.gitbook/assets/image (4).png" alt=""><figcaption></figcaption></figure>
@@ -154,7 +156,207 @@ export interface ArgumentMetadata {
 }
 ```
 
+이러한 속성은 현재 처리된 인수를 설명합니다.
 
+<table><thead><tr><th width="137"></th><th></th></tr></thead><tbody><tr><td><code>type</code></td><td>인수가 body @Body(), uqery @Query(), param @Param() 또는 사용자 정의 매개변수인지를 나타냅니다(자세한 내용은 여기를 참조하세요).</td></tr><tr><td><code>metatype</code></td><td>인수의 메타타입(예: <code>String</code>)을 제공합니다. 참고: 라우트 핸들러 메서드 시그니처에서 타입 선언을 생략하거나 바닐라 자바스크립트를 사용하는 경우 이 값은 <code>undefined</code> 입니다</td></tr><tr><td><code>data</code></td><td>데코레이터에 전달된 문자열입니다.(예: <code>@Body('string')</code>). 데코레이터 괄호를 비워두면 <code>undefined</code> 입니다.</td></tr></tbody></table>
+
+> 주의\
+> TypeScript 인터페이스는 코드 컴파일 중에 사라집니다. 따라서 메서드 매개 변수의 타입이 클래스 대신 인터페이스로 선언되면 `metatype` 값은 `Object`가 됩니다.
+
+
+
+### 스키마 기반 유효성 검사
+
+유효성 검사 파이프를 좀 더 유용하게 만들어 봅시다. 서비스 메서드를 실행하기 전에 포스트 body 객체가 유효한지 확인해야 하는 `CatsController`의 `create()` 메서드를 자세히 살펴봅시다.
+
+```typescript
+@Post()
+async create(@Body() createCatDto: CreateCatDto) {
+  this.catsService.create(createCatDto);
+}
+```
+
+`CreateCatDto` body 매개변수를 집중적으로 살펴봅시다. 이 매개변수의 유형은 `CreateCatDto`입니다:
+
+{% code title="create-cat.dto.ts" %}
+```typescript
+export class CreateCatDto {
+  name: string;
+  age: number;
+  breed: string;
+}
+```
+{% endcode %}
+
+create 메서드로 들어오는 모든 요청에 유효한 body가 포함되어 있는지 확인하고자 합니다. 따라서 `createCatDto` 객체의 세 멤버의 유효성을 검사해야 합니다. 라우트 핸들러 메서드 내부에서 이 작업을 수행할 수 있지만 **단일 책임 원칙(SRP)**을 위반하므로 이상적이지 않습니다.
+
+또 다른 접근 방식은 **유효성 검사 클래스**를 생성하고 작업을 위임하는 것입니다. 이 방법은 각 메서드의 시작 부분에서 이 **유효성 검사**를 호출하는 것을 기억해야 한다는 단점이 있습니다.
+
+유효성 검사 미들웨어를 만드는 것은 어떨까요? 이 방법도 효과가 있을 수 있지만, 안타깝게도 전체 애플리케이션의 모든 컨텍스트에서 사용할 수 있는 **일반적인 미들웨어**를 만드는 것은 불가능합니다. 미들웨어는 호출될 핸들러와 그 매개변수를 포함한 **실행 컨텍스트**를 인식하지 못하기 때문입니다.
+
+물론 이것이 바로 파이프를 사용하는 이유입니다. 이제 유효성 검사 파이프를 구체화해 보겠습니다.
+
+
+
+### 객체 스키마 유효성 검사
+
+깔끔하고 [**DRY**](https://en.wikipedia.org/wiki/Don't\_repeat\_yourself)한 방식으로 객체 유효성 검사를 수행하는 데 사용할 수 있는 몇 가지 접근 방식이 있습니다. 한 가지 일반적인 접근 방식은 **스키마 기반** 유효성 검사를 사용하는 것입니다. 이 접근 방식을 사용해 보겠습니다.
+
+[**Zod**](https://zod.dev/) 라이브러리를 사용하면 읽기 쉬운 API를 사용하여 간단한 방식으로 스키마를 만들 수 있습니다. Zod 기반 스키마를 사용하는 유효성 검사 파이프를 구축해 보겠습니다.
+
+먼저 필요한 패키지를 설치합니다:
+
+```bash
+$ npm install --save zod
+```
+
+아래 코드 샘플에서는 스키마를 생성자 인수로 받는 간단한 클래스를 만들었습니다. 그런 다음 제공된 스키마에 대해 들어오는 인수의 유효성을 검사하는 `schema.parse()` 메서드를 적용합니다.
+
+앞서 언급했듯이 **유효성 검사 파이프**는 변경되지 않은 값을 반환하거나 예외를 던집니다.
+
+다음 섹션에서는 `@UsePipes()` 데코레이터를 사용하여 주어진 컨트롤러 메서드에 적절한 스키마를 제공하는 방법을 살펴보겠습니다. 이렇게 하면 의도한 대로 여러 컨텍스트에서 유효성 검사 파이프를 재사용할 수 있습니다.
+
+```typescript
+import { PipeTransform, ArgumentMetadata, BadRequestException } from '@nestjs/common';
+import { ZodObject } from 'zod';
+
+export class ZodValidationPipe implements PipeTransform {
+  constructor(private schema: ZodObject<any>) {}
+
+  transform(value: unknown, metadata: ArgumentMetadata) {
+    try {
+      this.schema.parse(value);
+    } catch (error) {
+      throw new BadRequestException('Validation failed');
+    }
+    return value;
+  }
+}
+```
+
+### 유효성 검사 파이프 바인딩
+
+앞서 변환 파이프를 바인딩하는 방법(예: `ParseIntPipe` 및 나머지 `Parse*` 파이프)을 살펴보았습니다.
+
+유효성 검사 파이프를 바인딩하는 방법도 매우 간단합니다.
+
+이 경우 메서드 호출 수준에서 파이프를 바인딩하고 싶습니다. 현재 예제에서는 `ZodValidationPipe`를 사용하려면 다음을 수행해야 합니다:
+
+1. `ZodValidationPipe`의 인스턴스를 생성합니다.&#x20;
+2. 파이프의 클래스 생성자에서 컨텍스트별 Zod 스키마를 전달합니다.&#x20;
+3. 파이프를 메서드에 바인딩합니다.&#x20;
+
+Zod 스키마 예제:
+
+```typescript
+import { z } from 'zod';
+
+export const createCatSchema = z
+  .object({
+    name: z.string(),
+    age: z.number(),
+    breed: z.string(),
+  })
+  .required();
+
+export type CreateCatDto = z.infer<typeof createCatSchema>;
+```
+
+아래 그림과 같이 `@UsePipes()` 데코레이터를 사용하여 이를 수행합니다:
+
+{% code title="cats.controller.ts" %}
+```typescript
+@Post()
+@UsePipes(new ZodValidationPipe(createCatSchema))
+async create(@Body() createCatDto: CreateCatDto) {
+  this.catsService.create(createCatDto);
+}
+```
+{% endcode %}
+
+> **힌트**
+>
+> `UsePipes()` 데코레이터는 @nestjs/common 패키지에서 가져옵니다.
+
+> **주의**
+>
+> `zod` 라이브러리를 사용하려면 `tsconfig.json` 파일에서 `strictNullChecks`을 활성화해야 합니다.
+
+
+
+### 클래스 validator
+
+> **주의**
+>
+> 이 섹션의 기술은 TypeScript가 필요하며 바닐라 JavaScript를 사용하여 앱을 작성하는 경우에는 사용할 수 없습니다.&#x20;
+
+유효성 검사 기법에 대한 대체 구현 방법을 살펴보겠습니다.
+
+Nest는 클래스 [**class-validator**](https://github.com/typestack/class-validator) 라이브러리와 잘 작동합니다. 이 강력한 라이브러리를 사용하면 데코레이터 기반 유효성 검사를 사용할 수 있습니다. 데코레이터 기반 유효성 검사는 특히 처리된 프로퍼티의 `metatype`에 액세스할 수 있기 때문에 Nest의 파이프 기능과 결합할 때 매우 강력합니다. 시작하기 전에 필요한 패키지를 설치해야 합니다:
+
+```bash
+$ npm i --save class-validator class-transformer
+```
+
+설치가 완료되면 `CreateCatDto` 클래스에 몇 가지 데코레이터를 추가할 수 있습니다. 이 기법의 중요한 장점은 (별도의 유효성 검사 클래스를 만들지 않고도) `CreateCatDto` 클래스가 Post body 객체에 대한 단일 소스로 유지된다는 점입니다.
+
+{% code title="create-cat.dto.ts" %}
+```typescript
+import { IsString, IsInt } from 'class-validator';
+
+export class CreateCatDto {
+  @IsString()
+  name: string;
+
+  @IsInt()
+  age: number;
+
+  @IsString()
+  breed: string;
+}
+```
+{% endcode %}
+
+> **힌트**
+>
+> class-validator 데코레이터에 대해서는 [**이곳에서**](https://github.com/typestack/class-validator#usage) 더 읽어보세요.
+
+이제 이러한 어노테이션을 사용하는 ValidationPipe 클래스를 만들 수 있습니다.
+
+{% code title="validation.pipe.ts" %}
+```typescript
+import { PipeTransform, Injectable, ArgumentMetadata, BadRequestException } from '@nestjs/common';
+import { validate } from 'class-validator';
+import { plainToInstance } from 'class-transformer';
+
+@Injectable()
+export class ValidationPipe implements PipeTransform<any> {
+  async transform(value: any, { metatype }: ArgumentMetadata) {
+    if (!metatype || !this.toValidate(metatype)) {
+      return value;
+    }
+    const object = plainToInstance(metatype, value);
+    const errors = await validate(object);
+    if (errors.length > 0) {
+      throw new BadRequestException('Validation failed');
+    }
+    return value;
+  }
+
+  private toValidate(metatype: Function): boolean {
+    const types: Function[] = [String, Boolean, Number, Array, Object];
+    return !types.includes(metatype);
+  }
+}
+```
+{% endcode %}
+
+> **힌트**
+>
+> 다시 한 번 말씀드리자면, `ValidationPipe`는 Nest에서 기본으로 제공되므로 일반적인 validation 파이프는 직접 만들 필요가 없습니다. 기본 제공 `ValidationPipe`는 이 장에서 만든 샘플보다 더 많은 옵션을 제공하지만, 사용자 정의 파이프의 메커니즘을 설명하기 위해 기본으로 유지했습니다. 자세한 내용은 여기에서 많은 예제와 함께 확인할 수 있습니다.&#x20;
+
+> **참고** \
+> 위의 [**class-transformer**](https://github.com/typestack/class-transformer) 라이브러리는 **class-validator** 라이브러리와 같은 사람이 만든 라이브러리로, 결과적으로 두 라이브러리가 매우 잘 어울립니다.
 
 
 
