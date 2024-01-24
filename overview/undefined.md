@@ -2,7 +2,7 @@
 
 프로바이더는 Nest의 핵심 개념입니다. 서비스, 리포지토리, 팩토리, 헬퍼 등 많은 기본 Nest 클래스가 프로바이더로 취급될 수 있습니다. 프로바이더의 주요 개념은 **의존성으로 주입**될 수 있다는 것입니다. 즉, 객체들이 서로 다양한 관계를 생성할 수 있으며, 이러한 객체를 "연결, 관리"하는 기능은 대부분 Nest 런타임 시스템에 위임할 수 있습니다.
 
-<figure><img src="../.gitbook/assets/image (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 이전 장에서는 간단한 `CatsController`를 만들었습니다. 컨트롤러는 HTTP 요청을 처리하고 더 복잡한 작업을 프로바이더에 맡겨야 합니다. 프로바이더는 **module**에서 `providers`로 선언되는 일반 자바스크립트 클래스입니다.
 

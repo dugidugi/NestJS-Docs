@@ -2,7 +2,7 @@
 
 모듈은 `@Module()` 데코레이터가 붙은 클래스입니다. `@Module()` 데코레이터는 **Nest**가 애플리케이션 구조를 구성하는데 사용하는 메타데이터를 제공합니다.
 
-<figure><img src="../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
 
 각 애플리케이션은 최소한 하나의 모듈, 즉 **루트 모듈**을 가지고 있습니다. 루트 모듈은 Nest가 **애플리케이션 그래프**를 만드는 시작점입니다. 애플리케이션 그래프는 Nest가 모듈-프로바이더 관계, 의존성을 관리하는데 사용하는 내부 데이터 구조입니다. 매우 작은 애플리케이션은 이론적으로 루트 모듈만 존재할 수도 있습니다만, 이는 일반적인 경우는 아닙니다. 모듈은 컴포넌트를 효과적으로 조직하는 방법으로 강력히 권장됩니다. 따라서 대부분의 애플리케이션의 아키텍처는 여러 개의 모듈을 사용하며, 각 모듈은 밀접하게 관련된 기능들을 캡슐화합니다.
 
@@ -78,7 +78,7 @@ export class AppModule {}
 
 Nest에서 모듈은 기본적으로 싱글톤이므로, 여러 모듈 간에 모든 프로바이더의 동일한 인스턴스를 쉽게 공유할 수 있습니다.
 
-<figure><img src="../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 모든 모듈은 자동으로 공유 모듈입니다. 한 번 생성되면 모든 모듈에서 재사용할 수 있습니다. 다른 여러 모듈에서 `CatsService` 인스턴스를 공유하고 싶다고 가정해보겠습니다. 이를 위해 먼저 아래처럼 모듈의 `exports` 배열에 `CatsService` 프로바이더를 추가하여 내보내야 합니다.
 
