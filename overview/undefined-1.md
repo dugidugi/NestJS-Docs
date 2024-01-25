@@ -78,7 +78,7 @@ export class AppModule {}
 
 Nest에서 모듈은 기본적으로 싱글톤이므로, 여러 모듈 간에 모든 프로바이더의 동일한 인스턴스를 쉽게 공유할 수 있습니다.
 
-<figure><img src="../.gitbook/assets/image (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 모든 모듈은 자동으로 공유 모듈입니다. 한 번 생성되면 모든 모듈에서 재사용할 수 있습니다. 다른 여러 모듈에서 `CatsService` 인스턴스를 공유하고 싶다고 가정해보겠습니다. 이를 위해 먼저 아래처럼 모듈의 `exports` 배열에 `CatsService` 프로바이더를 추가하여 내보내야 합니다.
 

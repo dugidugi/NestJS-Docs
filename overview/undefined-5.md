@@ -1,8 +1,8 @@
 # 가드
 
-가드는 `@Injectable()` 데코레이터가 달린 클래스로, `CanActivate` 인터페이스를 사용할 수 있습니다.
+가드는 `@Injectable()` 데코레이터가 달린 클래스로, `CanActivate` 인터페이스를 implement합니다.
 
-<figure><img src="../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
 
 가드는 한 가지 역할만을 담당합니다. 가드는 런타임에 존재하는 특정 조건(예: 권한, 역할,  ACL 등)에 따라 특정 요청이 라우트 핸들러에 의해 처리될지 말지 결정합니다. 이를 흔히 인가(authorization)이라고 합니다. 인가는 기존 Express 애플리케이션에서는 보통 [미들웨어](undefined-2.md)에서 처리되었습니다. 미들웨어는 인증(authentication)에는 적합한 선택입니다. 토큰 유효성 검사, request 객체에 프로퍼티를 첨부하는 것과 같은 작업은 특정 경로 컨텍스트(및 해당 메타데이터)와 밀접하게 연결되어 있지 않기 때문입니다.
 
